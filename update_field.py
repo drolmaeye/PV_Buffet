@@ -45,11 +45,6 @@ class OneMotor:
         self.drbv.set(self.p_string % self.mdrbv.value)
         self.egu.set(self.megu.value)
 
-        # ###print self.desc.get()
-        # ###print self.rbv.get()
-        # ###print self.drbv.get()
-        # ###print self.egu.get()
-
         # make display line
         self.desc_label = Label(self.frame, textvariable=self.desc, width=20, anchor='w')
         self.rbv_label = Label(self.frame, textvariable=self.rbv, width=10, anchor='w', relief=SUNKEN)
@@ -74,8 +69,73 @@ class OneMotor:
         self.egu.set(self.megu.value)
 
 
+class OneCounter:
+
+    sens_list = ['1', '2', '5', '10', '20', '50', '100', '200', '500']
+    unit_list = ['pA/V', 'nA/V', 'uA/V', 'mA/V']
+
+    def __init__(self, master, hutch='16IDB:', scaler='scaler1', counts='_cts2.A', nm='.NM5', sr='A1', row=0, column=0):
+        self.frame = Frame(master)
+        self.frame.grid(row=row, column=column)
+
+        # create PVs
+        self.cname = PV(hutch + scaler + nm, callback=self.update_name)
+        self.ccounts = PV(hutch + scaler + counts, callback=self.update_counts)
+        self.csens = PV(hutch + sr + 'sens_num.VAL', callback=self.update_sens)
+        self.cunit = PV(hutch + sr + 'sens_unit.VAL', callback=self.update_unit)
+
+        # define instance variables and get initial values
+        self.name = StringVar()
+        self.counts = IntVar()
+        self.sens = StringVar()
+        self.unit = StringVar()
+        self.combined_unit = StringVar()
+
+        # make display line
+        self.name_label = Label(self.frame, textvariable=self.name, width=8, anchor='w')
+        self.counts_label = Label(self.frame, textvariable=self.counts, width=6, anchor='e', relief=SUNKEN)
+        self.sens_label = Label(self.frame, textvariable=self.combined_unit, width=7, anchor='e')
+
+        self.name_label.grid(row=0, column=0, padx=4, pady=2)
+        self.counts_label.grid(row=0, column=1, padx=5, pady=2)
+        self.sens_label.grid(row=0, column=2, padx=5, pady=2)
+
+    def update_name(self, **kwargs):
+        self.name.set(self.cname.value)
+
+    def update_counts(self, **kwargs):
+        self.counts.set(int(self.ccounts.value))
+
+    def update_sens(self, **kwargs):
+        self.sens.set(OneCounter.sens_list[self.csens.value])
+        self.combined_unit.set(self.sens.get() + ' ' + self.unit.get())
+
+    def update_unit(self, **kwargs):
+        self.unit.set(OneCounter.unit_list[self.cunit.value])
+        self.combined_unit.set(self.sens.get() + ' ' + self.unit.get())
+
+
+class TimeStamp:
+    def __init__(self, master):
+        self.frame = Frame(master, bg='CadetBlue3')
+        self.frame.pack()
+
+        # timestamp PV
+        self.ioc_time = PV('S:IOC:timeOfDayForm1SI', callback=self.update_time)
+
+        # define instance variables
+        self.time_stamp = StringVar()
+
+        # make display label
+        self.time_stamp_label = Label(self.frame, textvariable=self.time_stamp, width=46, bg='CadetBlue3')
+        self.time_stamp_label.grid(row=0, column=0, padx=29, pady=3)
+
+    def update_time(self, **kwargs):
+        self.time_stamp.set(self.ioc_time.value)
+
+
 root = Tk()
-root.title('Update Field')
+root.title('IDB-GP Table January 2017')
 
 # Primary frames for displaying objects
 frameLeft = Frame(root)
@@ -96,6 +156,8 @@ frameBeamstop = Frame(frameLeft, bd=5, relief=RIDGE)
 frameBeamstop.grid(row=6, column=0)
 frameSlits = Frame(frameLeft, bd=5, relief=RIDGE)
 frameSlits.grid(row=7, column=0)
+frameTimeStamp = Frame(frameLeft, bd=5, relief=RIDGE)
+frameTimeStamp.grid(row=8, column=0)
 
 
 frameRight = Frame(root)
@@ -110,7 +172,8 @@ frameVSKB = Frame(frameRight, bd=5, relief=RIDGE)
 frameVSKB.grid(row=3, column=1)
 frameHSKB = Frame(frameRight, bd=5, relief=RIDGE)
 frameHSKB.grid(row=4, column=1)
-
+frameCounter = Frame(frameRight, bd=5, relief=RIDGE)
+frameCounter.grid(row=5, column=1)
 
 # objects to be places in primary frames
 high_precision = MotorHeading(frameXPS, 'High precision sample')
@@ -156,6 +219,8 @@ idb_hsize = OneMotor(frameSlits, '16IDB:m23', 3)
 idb_vpos = OneMotor(frameSlits, '16IDB:m22', 3)
 idb_vsize = OneMotor(frameSlits, '16IDB:m20', 3)
 
+time_stamp = TimeStamp(frameTimeStamp)
+
 lkb_mirror_x = MotorHeading(frameLKBX, 'LKB Mirror X')
 lkb_x_position = OneMotor(frameLKBX, '16IDB:m1', 3)
 
@@ -196,5 +261,10 @@ hskb_usf = OneMotor(frameHSKB, '16IDB:m87', 1)
 hskb_dsf = OneMotor(frameHSKB, '16IDB:m88', 1)
 hskb_curvature = OneMotor(frameHSKB, '16IDB:pm3', 1)
 hskb_ellipticity = OneMotor(frameHSKB, '16IDB:pm4', 1)
+
+counter_ida_ic = OneCounter(frameCounter, '16IDB:', 'scaler1', '_cts2.A', '.NM5', sr='A1', row=0, column=0)
+counter_idb_ic = OneCounter(frameCounter, '16IDB:', 'scaler1', '_cts1.C', '.NM3', sr='A3', row=1, column=0)
+counter_diode = OneCounter(frameCounter, '16IDB:', 'scaler1', '_cts1.D', '.NM4', sr='A4', row=0, column=1)
+counter_beamstop = OneCounter(frameCounter, '16IDB:', 'scaler1', '_cts2.B', '.NM6', sr='A5', row=1, column=1)
 
 root.mainloop()
