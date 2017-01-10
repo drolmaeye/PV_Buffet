@@ -112,6 +112,7 @@ class OneCounter:
 
     def update_unit(self, **kwargs):
         self.unit.set(OneCounter.unit_list[self.cunit.value])
+        print self.cunit.info
         self.combined_unit.set(self.sens.get() + ' ' + self.unit.get())
 
 
@@ -135,7 +136,7 @@ class TimeStamp:
 
 
 root = Tk()
-root.title('IDB-GP Table January 2017')
+root.title('IDB-GP Table (January 2017 Configuration)')
 
 # Primary frames for displaying objects
 frameLeft = Frame(root)
