@@ -408,11 +408,6 @@ counter_idb_ic = OneCounter(frameCounterGP, '16IDB:', 'scaler1', '_cts1.C', '.NM
 counter_diode = OneCounter(frameCounterGP, '16IDB:', 'scaler1', '_cts1.D', '.NM4', sr='A4', row=0, column=1)
 counter_beamstop = OneCounter(frameCounterGP, '16IDB:', 'scaler1', '_cts2.B', '.NM6', sr='A5', row=1, column=1)
 
-# ###counter_ida_ic.cname.run_callbacks()
-# ###counter_ida_ic.ccounts.run_callbacks()
-# ###counter_ida_ic.csens.run_callbacks()
-# ###counter_ida_ic.cunit.run_callbacks()
-
 # closing protocol
 root.protocol('WM_DELETE_WINDOW', close_quit)
 
