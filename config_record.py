@@ -112,10 +112,20 @@ class OneCounter:
         self.combined_unit = StringVar()
 
         # create PVs
-        self.cname = PV(hutch + scaler + nm, callback=self.update_name)
-        self.ccounts = PV(hutch + scaler + counts, callback=self.update_counts)
-        self.csens = PV(hutch + sr + 'sens_num.VAL', callback=self.update_sens)
-        self.cunit = PV(hutch + sr + 'sens_unit.VAL', callback=self.update_unit)
+        self.cname = PV(hutch + scaler + nm)
+        self.ccounts = PV(hutch + scaler + counts)
+        self.csens = PV(hutch + sr + 'sens_num.VAL')
+        self.cunit = PV(hutch + sr + 'sens_unit.VAL')
+
+        self.cname.add_callback(self.update_name)
+        self.ccounts.add_callback(self.update_counts)
+        self.csens.add_callback(self.update_sens)
+        self.cunit.add_callback(self.update_unit)
+
+        self.cname.run_callbacks()
+        self.ccounts.run_callbacks()
+        self.csens.run_callbacks()
+        self.cunit.run_callbacks()
 
         # make display line
         self.name_label = Label(self.frame, textvariable=self.name, width=8, anchor='w')
@@ -128,6 +138,7 @@ class OneCounter:
 
     def update_name(self, **kwargs):
         self.name.set(self.cname.value)
+        print 'ran it'
 
     def update_counts(self, **kwargs):
         self.counts.set(int(self.ccounts.value))
@@ -182,7 +193,8 @@ class TimeStamp:
         self.time_stamp = StringVar()
 
         # timestamp PV
-        self.ioc_time = PV('S:IOC:timeOfDayForm1SI', callback=self.update_time)
+        self.ioc_time = PV('S:IOC:timeOfDayForm1SI') #, callback=self.update_time)
+        self.ioc_time.add_callback(self.update_time)
 
         # make display label
         self.time_stamp_label = Label(self.frame, textvariable=self.time_stamp, width=46, bg='CadetBlue3')
@@ -244,7 +256,7 @@ bdcm2_bragg = OneMotor(frameBDCM2IDA, '16IDA:m32', 6)
 bdcm2_tilt = OneMotor(frameBDCM2IDA, '16IDA:m23', 3)
 bdcm2_xtal_z = OneMotor(frameBDCM2IDA, '16IDA:m24', 3)
 
-# ###ida_time = TimeStamp(frameTimeStampIDA, 29, 3)
+ida_time = TimeStamp(frameTimeStampIDA, 29, 3)
 
 ida_slits = MotorHeading(frameSlitsIDA, 'FOE Slits')
 ida_slits_vsize = OneMotor(frameSlitsIDA, '16IDA:m9', 3)
@@ -258,6 +270,11 @@ bdcm_diagnostic_vsize = OneMotor(frameDiagnosticIDA, '16IDA:m18', 3)
 bdcm_diagnostic_vpos = OneMotor(frameDiagnosticIDA, '16IDA:m19', 3)
 bdcm_diagnostic_hsize = OneMotor(frameDiagnosticIDA, '16IDA:m20', 3)
 bdcm_diagnostic_hpos = OneMotor(frameDiagnosticIDA, '16IDA:m21', 3)
+
+ida_counter_ida_ic = OneCounter(frameCounterIDA, '16IDB:', 'scaler1', '_cts2.A', '.NM5', sr='A1', row=0, column=0)
+ida_counter_idb_ic = OneCounter(frameCounterIDA, '16IDB:', 'scaler1', '_cts1.C', '.NM3', sr='A3', row=1, column=0)
+ida_counter_diode = OneCounter(frameCounterIDA, '16IDB:', 'scaler1', '_cts1.D', '.NM4', sr='A4', row=0, column=1)
+ida_counter_beamstop = OneCounter(frameCounterIDA, '16IDB:', 'scaler1', '_cts2.B', '.NM6', sr='A5', row=1, column=1)
 
 # ##########################################
 # idb_gp start
@@ -390,6 +407,11 @@ counter_ida_ic = OneCounter(frameCounterGP, '16IDB:', 'scaler1', '_cts2.A', '.NM
 counter_idb_ic = OneCounter(frameCounterGP, '16IDB:', 'scaler1', '_cts1.C', '.NM3', sr='A3', row=1, column=0)
 counter_diode = OneCounter(frameCounterGP, '16IDB:', 'scaler1', '_cts1.D', '.NM4', sr='A4', row=0, column=1)
 counter_beamstop = OneCounter(frameCounterGP, '16IDB:', 'scaler1', '_cts2.B', '.NM6', sr='A5', row=1, column=1)
+
+# ###counter_ida_ic.cname.run_callbacks()
+# ###counter_ida_ic.ccounts.run_callbacks()
+# ###counter_ida_ic.csens.run_callbacks()
+# ###counter_ida_ic.cunit.run_callbacks()
 
 # closing protocol
 root.protocol('WM_DELETE_WINDOW', close_quit)
