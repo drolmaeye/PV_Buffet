@@ -55,31 +55,28 @@ class OneMotor:
         self.frame = Frame(master)
         self.frame.pack()
 
+        # define instance variables
+        self.desc = StringVar()
+        self.rbv = StringVar()
+        self.drbv = StringVar()
+        self.egu = StringVar()
+
+        # create precision string
+        self.p_string = '%.' + str(precision) + 'f'
+
         # create PVs
         self.mdesc = PV(motor + '.DESC', callback=self.update_desc)
         self.mrbv = PV(motor + '.RBV', callback=self.update_rbv)
         self.mdrbv = PV(motor + '.DRBV', callback=self.update_drbv)
         self.megu = PV(motor + '.EGU', callback=self.update_egu)
 
-        # create precision string
-        self.p_string = '%.' + str(precision) + 'f'
-
-        # define instance variables and get initial values
-        self.desc = StringVar()
-        self.rbv = StringVar()
-        self.drbv = StringVar()
-        self.egu = StringVar()
-        self.desc.set(self.mdesc.value)
-        self.rbv.set(self.p_string % self.mrbv.value)
-        self.drbv.set(self.p_string % self.mdrbv.value)
-        self.egu.set(self.megu.value)
-
-        # make display line
+        # make display line widgets
         self.desc_label = Label(self.frame, textvariable=self.desc, width=20, anchor='w')
         self.rbv_label = Label(self.frame, textvariable=self.rbv, width=10, anchor='w', relief=SUNKEN)
         self.drbv_label = Label(self.frame, textvariable=self.drbv, width=10, anchor='w', relief=SUNKEN)
         self.egu_label = Label(self.frame, textvariable=self.egu, width=6, anchor='w')
 
+        # place display line widgets
         self.desc_label.grid(row=0, column=0, padx=5, pady=2)
         self.rbv_label.grid(row=0, column=1, padx=5, pady=2)
         self.drbv_label.grid(row=0, column=2, padx=5, pady=2)
@@ -103,28 +100,22 @@ class OneCounter:
     sens_list = ['1', '2', '5', '10', '20', '50', '100', '200', '500']
     unit_list = ['pA/V', 'nA/V', 'uA/V', 'mA/V']
 
-    def __init__(self, master, counter, row=0, column=0):
+    def __init__(self, master, hutch='16IDB:', scaler='scaler1', counts='_cts2.A', nm='.NM5', sr='A1', row=0, column=0):
         self.frame = Frame(master)
         self.frame.grid(row=row, column=column)
 
-        # #### create PVs
-        # ###ida_ic.add_callback(attribute, self.update_name)
-        # ###self.ccounts = PV(hutch + scaler + counts, callback=self.update_counts)
-        # ###self.csens = PV(hutch + sr + 'sens_num.VAL', callback=self.update_sens)
-        # ###self.cunit = PV(hutch + sr + 'sens_unit.VAL', callback=self.update_unit)
-
-        # add callbacks
-        self.add_callback(self.update_name)
-        pv_list[1].add_callback(self.update_counts)
-        pv_list[2].add_callback(self.update_sens)
-        pv_list[3].add_callback(self.update_unit)
-
-        # define instance variables and get initial values
+        # define instance variables
         self.name = StringVar()
         self.counts = IntVar()
         self.sens = StringVar()
         self.unit = StringVar()
         self.combined_unit = StringVar()
+
+        # create PVs
+        self.cname = PV(hutch + scaler + nm, callback=self.update_name)
+        self.ccounts = PV(hutch + scaler + counts, callback=self.update_counts)
+        self.csens = PV(hutch + sr + 'sens_num.VAL', callback=self.update_sens)
+        self.cunit = PV(hutch + sr + 'sens_unit.VAL', callback=self.update_unit)
 
         # make display line
         self.name_label = Label(self.frame, textvariable=self.name, width=8, anchor='w')
@@ -136,7 +127,7 @@ class OneCounter:
         self.sens_label.grid(row=0, column=2, padx=5, pady=2)
 
     def update_name(self, **kwargs):
-        self.name.set(*pvname.value)
+        self.name.set(self.cname.value)
 
     def update_counts(self, **kwargs):
         self.counts.set(int(self.ccounts.value))
@@ -183,23 +174,22 @@ class OneCustom:
 
 
 class TimeStamp:
-    def __init__(self, master, padx, pady):
+    def __init__(self, master, padx=0, pady=0):
         self.frame = Frame(master, bg='CadetBlue3')
         self.frame.pack()
 
-        # timestamp PV
-        # ###self.ioc_time = PV('S:IOC:timeOfDayForm1SI', callback=self.update_time)
-        ioc_time.add_callback(self.update_time)
-
         # define instance variables
         self.time_stamp = StringVar()
+
+        # timestamp PV
+        self.ioc_time = PV('S:IOC:timeOfDayForm1SI', callback=self.update_time)
 
         # make display label
         self.time_stamp_label = Label(self.frame, textvariable=self.time_stamp, width=46, bg='CadetBlue3')
         self.time_stamp_label.grid(row=0, column=0, padx=padx, pady=pady)
 
     def update_time(self, **kwargs):
-        self.time_stamp.set(ioc_time.value)
+        self.time_stamp.set(self.ioc_time.value)
 
 
 def close_quit():
@@ -217,43 +207,6 @@ root.title('Table Records (January 2017 Configuration)')
 ida = TableSheet(root, 'IDA', 'IDA', 0, 0)
 idb_gp = TableSheet(root, 'IDB General Purpose Table', 'IDB-GP', 0, 1)
 idb_lh = TableSheet(root, 'IDB Laser Heating Table', 'IDB-LH', 0, 2)
-
-# shared PVs
-ioc_time = PV('S:IOC:timeOfDayForm1SI')
-
-ida_ic_name = PV('16IDB:scaler1.NM5')
-ida_ic_counts = PV('16IDB:scaler1_cts2.A')
-ida_ic_sens = PV('16IDB:A1sens_num.VAL')
-ida_ic_unit = PV('16IDB:A1sens_unit.VAL')
-
-idb_ic_name = PV('16IDB:scaler1.NM3')
-idb_ic_counts = PV('16IDB:scaler1_cts1.C')
-idb_ic_sens = PV('16IDB:A3sens_num.VAL')
-idb_ic_unit = PV('16IDB:A3sens_unit.VAL')
-
-pneumo_diode_name = PV('16IDB:scaler1.NM4')
-pneumo_diode_counts = PV('16IDB:scaler1_cts1.D')
-pneumo_diode_sens = PV('16IDB:A4sens_num.VAL')
-pneumo_diode_unit = PV('16IDB:A4sens_unit.VAL')
-
-bs_diode_name = PV('16IDB:scaler1.NM5')
-bs_diode_counts = PV('16IDB:scaler1_cts2.B')
-bs_diode_sens = PV('16IDB:A5sens_num.VAL')
-bs_diode_unit = PV('16IDB:A5sens_unit.VAL')
-
-
-idb_ic = Device('16IDB:', attrs=('scaler1.NM3', 'scaler1_cts1.C', 'A3sens_num.VAL', 'A3sens_unit.VAL'))
-
-
-
-
-pneumo_diode = Device('16IDB:', attrs=('scaler1.NM4', 'scaler1_cts1.D', 'A4sens_num.VAL', 'A4sens_unit.VAL'))
-
-
-
-
-bs_diode = Device('16IDB:', attrs=('scaler1.NM6', 'scaler1_cts2.B', 'A5sens_num.VAL', 'A5sens_unit.VAL'))
-
 
 
 # ##########################################
@@ -291,7 +244,7 @@ bdcm2_bragg = OneMotor(frameBDCM2IDA, '16IDA:m32', 6)
 bdcm2_tilt = OneMotor(frameBDCM2IDA, '16IDA:m23', 3)
 bdcm2_xtal_z = OneMotor(frameBDCM2IDA, '16IDA:m24', 3)
 
-ida_time = TimeStamp(frameTimeStampIDA, 29, 2)
+# ###ida_time = TimeStamp(frameTimeStampIDA, 29, 3)
 
 ida_slits = MotorHeading(frameSlitsIDA, 'FOE Slits')
 ida_slits_vsize = OneMotor(frameSlitsIDA, '16IDA:m9', 3)
@@ -305,10 +258,6 @@ bdcm_diagnostic_vsize = OneMotor(frameDiagnosticIDA, '16IDA:m18', 3)
 bdcm_diagnostic_vpos = OneMotor(frameDiagnosticIDA, '16IDA:m19', 3)
 bdcm_diagnostic_hsize = OneMotor(frameDiagnosticIDA, '16IDA:m20', 3)
 bdcm_diagnostic_hpos = OneMotor(frameDiagnosticIDA, '16IDA:m21', 3)
-
-# ###ida_counter_ida_ic = OneCounter(frameCounterIDA, '16IDB:', 'scaler1', '_cts2.A', '.NM5', sr='A1', row=0, column=0)
-# ###ida_counter_idb_ic = OneCounter(frameCounterIDA, '16IDB:', 'scaler1', '_cts1.C', '.NM3', sr='A3', row=0, column=1)
-
 
 # ##########################################
 # idb_gp start

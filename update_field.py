@@ -26,31 +26,28 @@ class OneMotor:
         self.frame = Frame(master)
         self.frame.pack()
 
+        # define instance variables
+        self.desc = StringVar()
+        self.rbv = StringVar()
+        self.drbv = StringVar()
+        self.egu = StringVar()
+
+        # create precision string
+        self.p_string = '%.' + str(precision) + 'f'
+
         # create PVs
         self.mdesc = PV(motor + '.DESC', callback=self.update_desc)
         self.mrbv = PV(motor + '.RBV', callback=self.update_rbv)
         self.mdrbv = PV(motor + '.DRBV', callback=self.update_drbv)
         self.megu = PV(motor + '.EGU', callback=self.update_egu)
 
-        # create precision string
-        self.p_string = '%.' + str(precision) + 'f'
-
-        # define instance variables and get initial values
-        self.desc = StringVar()
-        self.rbv = StringVar()
-        self.drbv = StringVar()
-        self.egu = StringVar()
-        self.desc.set(self.mdesc.value)
-        self.rbv.set(self.p_string % self.mrbv.value)
-        self.drbv.set(self.p_string % self.mdrbv.value)
-        self.egu.set(self.megu.value)
-
-        # make display line
+        # make display line widgets
         self.desc_label = Label(self.frame, textvariable=self.desc, width=20, anchor='w')
         self.rbv_label = Label(self.frame, textvariable=self.rbv, width=10, anchor='w', relief=SUNKEN)
         self.drbv_label = Label(self.frame, textvariable=self.drbv, width=10, anchor='w', relief=SUNKEN)
         self.egu_label = Label(self.frame, textvariable=self.egu, width=6, anchor='w')
 
+        # place display line widgets
         self.desc_label.grid(row=0, column=0, padx=5, pady=2)
         self.rbv_label.grid(row=0, column=1, padx=5, pady=2)
         self.drbv_label.grid(row=0, column=2, padx=5, pady=2)
@@ -78,18 +75,18 @@ class OneCounter:
         self.frame = Frame(master)
         self.frame.grid(row=row, column=column)
 
-        # create PVs
-        self.cname = PV(hutch + scaler + nm, callback=self.update_name)
-        self.ccounts = PV(hutch + scaler + counts, callback=self.update_counts)
-        self.csens = PV(hutch + sr + 'sens_num.VAL', callback=self.update_sens)
-        self.cunit = PV(hutch + sr + 'sens_unit.VAL', callback=self.update_unit)
-
-        # define instance variables and get initial values
+        # define instance variables
         self.name = StringVar()
         self.counts = IntVar()
         self.sens = StringVar()
         self.unit = StringVar()
         self.combined_unit = StringVar()
+
+        # create PVs
+        self.cname = PV(hutch + scaler + nm, callback=self.update_name)
+        self.ccounts = PV(hutch + scaler + counts, callback=self.update_counts)
+        self.csens = PV(hutch + sr + 'sens_num.VAL', callback=self.update_sens)
+        self.cunit = PV(hutch + sr + 'sens_unit.VAL', callback=self.update_unit)
 
         # make display line
         self.name_label = Label(self.frame, textvariable=self.name, width=8, anchor='w')
@@ -112,7 +109,6 @@ class OneCounter:
 
     def update_unit(self, **kwargs):
         self.unit.set(OneCounter.unit_list[self.cunit.value])
-        print self.cunit.info
         self.combined_unit.set(self.sens.get() + ' ' + self.unit.get())
 
 
@@ -121,11 +117,11 @@ class TimeStamp:
         self.frame = Frame(master, bg='CadetBlue3')
         self.frame.pack()
 
-        # timestamp PV
-        self.ioc_time = PV('S:IOC:timeOfDayForm1SI', callback=self.update_time)
-
         # define instance variables
         self.time_stamp = StringVar()
+
+        # timestamp PV
+        self.ioc_time = PV('S:IOC:timeOfDayForm1SI', callback=self.update_time)
 
         # make display label
         self.time_stamp_label = Label(self.frame, textvariable=self.time_stamp, width=46, bg='CadetBlue3')
