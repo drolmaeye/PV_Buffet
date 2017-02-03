@@ -34,6 +34,59 @@ class TableSheet:
         self.popup.withdraw()
 
 
+class Source:
+    def __init__(self, master):
+        self.frame = Frame(master)
+        self.frame.grid(row=0, column=0)
+
+        # define instance variables
+        self.gap = StringVar()
+        self.harmonic = IntVar()
+        self.current = StringVar()
+
+        # create PVs, add callbacks, and run callbacks
+        self.sgap = PV('ID16ds:Gap.VAL')
+        self.sharmonic = PV('ID16:HarmonicValue.VAL')
+        self.scurrent = PV('S:SRcurrentAI.VAL')
+
+        self.sgap.add_callback(self.update_gap)
+        self.sharmonic.add_callback(self.update_harmonic)
+        self.scurrent.add_callback(self.update_current)
+
+        self.sgap.run_callbacks()
+        self.sharmonic.run_callbacks()
+        self.scurrent.run_callbacks()
+
+        # make display line widgets
+        self.gap_label1 = Label(self.frame, text='Undulator gap', width=16, anchor='e')
+        self.gap_label2 = Label(self.frame, textvariable=self.gap, width=6, anchor='e', relief=SUNKEN)
+        self.gap_label3 = Label(self.frame, text='mm', anchor='w')
+        self.harmonic_label1 = Label(self.frame, text='Harmonic', width=10, anchor='e')
+        self.harmonic_label2 = Label(self.frame, textvariable=self.harmonic, width=4, anchor='e', relief=SUNKEN)
+        self.current_label1 = Label(self.frame, text='Storage ring current', width=16, anchor='e')
+        self.current_label2 = Label(self.frame, textvariable=self.current, width=6, anchor='e', relief=SUNKEN)
+        self.current_label3 = Label(self.frame, text='mA', width=8, anchor='w')
+
+        # place display line widgets
+        self.gap_label1.grid(row=0, column=0, padx=10, pady=10)
+        self.gap_label2.grid(row=0, column=1)
+        self.gap_label3.grid(row=0, column=2)
+        # ###self.harmonic_label1.grid(row=0, column=3, padx=10, pady=10)
+        # ###self.harmonic_label2.grid(row=0, column=4)
+        self.current_label1.grid(row=0, column=5, padx=10, pady=10)
+        self.current_label2.grid(row=0, column=6)
+        self.current_label3.grid(row=0, column=7)
+
+    def update_gap(self, **kwargs):
+        self.gap.set('%.3f' % self.sgap.value)
+
+    def update_harmonic(self, **kwargs):
+        self.harmonic.set(int(self.sharmonic.value))
+
+    def update_current(self, **kwargs):
+        self.current.set('%.1f' % self.scurrent.value)
+
+
 class MotorHeading:
     def __init__(self, master, label, color='light goldenrod'):
         self.frame = Frame(master, bg=color)
@@ -245,8 +298,11 @@ idb_lh = TableSheet(root, 'IDB Laser Heating Table', 'IDB-LH', 0, 2)
 # ##########################################
 # ida start
 # ##########################################
+frameTopIDA = Frame(ida.popup)
+frameTopIDA.grid(row=0, column=0, columnspan=2)
+
 frameLeftIDA = Frame(ida.popup)
-frameLeftIDA.grid(row=0, column=0)
+frameLeftIDA.grid(row=1, column=0)
 frameBDCM1IDA = Frame(frameLeftIDA, bd=5, relief=RIDGE)
 frameBDCM1IDA.grid(row=0, column=0)
 frameBDCM2IDA = Frame(frameLeftIDA, bd=5, relief=RIDGE)
@@ -255,7 +311,7 @@ frameTimeStampIDA = Frame(frameLeftIDA, bd=5, relief=RIDGE)
 frameTimeStampIDA.grid(row=2, column=0)
 
 frameRightIDA = Frame(ida.popup)
-frameRightIDA.grid(row=0, column=1)
+frameRightIDA.grid(row=1, column=1)
 frameSlitsIDA = Frame(frameRightIDA, bd=5, relief=RIDGE)
 frameSlitsIDA.grid(row=0, column=0)
 frameDiagnosticIDA = Frame(frameRightIDA, bd=5, relief=RIDGE)
@@ -264,6 +320,8 @@ frameCounterIDA = Frame(frameRightIDA, bd=5, relief=RIDGE)
 frameCounterIDA.grid(row=2, column=0)
 
 # objects for ida
+ida_ring = Source(frameTopIDA)
+
 ida_bdcm1 = MotorHeading(frameBDCM1IDA, 'BDCM-1')
 ida_bdcm1_bragg1 = OneMotor(frameBDCM1IDA, '16IDA:m29', 6)
 ida_bdcm1_tilt = OneMotor(frameBDCM1IDA, '16IDA:m31', 3)
