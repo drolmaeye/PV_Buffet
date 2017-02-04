@@ -1,35 +1,43 @@
-import Tkinter as tk
+import collections
 
-class ExampleApp(tk.Tk):
-    def __init__(self):
-        tk.Tk.__init__(self)
-        t = SimpleTable(self, 10,2)
-        t.pack(side="top", fill="x")
-        t.set(0,0,"Hello, world")
+mpv = [('Timestamp', ['Timestamp']),
+       ('Sample stages', ['XPS Cen X', 'XPS Cen Y', 'XPS Sam Z', 'XPS Omega']),
+       ('Counts', ['Ring current', 'IDA-IC', 'IDB-IC', 'Beamstop'])
+       ]
 
-class SimpleTable(tk.Frame):
-    def __init__(self, parent, rows=10, columns=2):
-        # use black background so it "peeks through" to
-        # form grid lines
-        tk.Frame.__init__(self, parent, background="blue")
-        self._widgets = []
-        for row in range(rows):
-            current_row = []
-            for column in range(columns):
-                label = tk.Label(self, text="%s/%s" % (row, column),
-                                 borderwidth=0, width=10)
-                label.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
-                current_row.append(label)
-            self._widgets.append(current_row)
-
-        for column in range(columns):
-            self.grid_columnconfigure(column, weight=1)
+print type(mpv)
 
 
-    def set(self, row, column, value):
-        widget = self._widgets[row][column]
-        widget.configure(text=value)
+mpv = collections.OrderedDict(mpv)
 
-if __name__ == "__main__":
-    app = ExampleApp()
-    app.mainloop()
+
+
+
+
+
+
+
+
+
+print type(mpv)
+
+
+print mpv.items()
+print mpv.keys()
+print mpv.values()
+
+for keys in mpv.keys():
+    print len(mpv[keys])
+
+mpv2 = {'Timestamp': ['Timestamp'],
+        'Sample stages': ['XPS Cen X', 'XPS Cen Y', 'XPS Sam Z', 'XPS Omega'],
+        'Counts': ['Ring current', 'IDA-IC', 'IDB-IC', 'Beamstop']}
+
+print type(mpv2)
+
+print mpv2.items()
+print mpv2.keys()
+print mpv2.values()
+
+for keys in mpv2.keys():
+    print len(mpv2[keys])
