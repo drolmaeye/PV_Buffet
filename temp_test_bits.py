@@ -1,21 +1,30 @@
-from Tkinter import *
-from tktable import *
-from epics import *
-import collections
+import Tkinter as tk
 
-d = collections.OrderedDict()
 
-cenxmdesc = PV('XPSGP:m1.DESC')
-cenxmrbv = PV('XPSGP:m1.RBV')
-cenymdesc = PV('XPSGP:m2.DESC')
-cenymrbv = PV('XPSGP:m2.RBV')
+class Example(tk.Frame):
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
 
-print cenxmdesc.value
-print cenxmrbv.value
-print cenymdesc.value
-print cenymrbv.value
+        items = {"motors": ["a","b","c"],
+                 "temperatures": ["d","e","f"],
+                 "pressure": ["g","h","i"]}
 
-d[cenxmdesc.value] = cenxmrbv.value
-d[cenymdesc.value] = cenymrbv.value
+        self.the_value = tk.StringVar()
+        self.the_value.set("e")
 
-print d.values()
+        self.menubutton = tk.Menubutton(self, textvariable=self.the_value, indicatoron=True)
+        self.topMenu = tk.Menu(self.menubutton, tearoff=False)
+        self.menubutton.configure(menu=self.topMenu)
+
+        for key in sorted(items.keys()):
+            menu = tk.Menu(self.topMenu)
+            self.topMenu.add_cascade(label=key, menu=menu)
+            for value in items[key]:
+                menu.add_radiobutton(label=value, variable = self.the_value, value=value)
+
+        self.menubutton.pack()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    Example(root).pack(fill="both", expand=True)
+    root.mainloop()
