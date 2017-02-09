@@ -27,6 +27,7 @@ class LogEntry:
         print 'connect it'
         self.new_pv = PV(self.new_pv_var.get())
         print self.new_pv.value
+        print getattr('fred', PV)
 
     def pv_print(self, event):
         print 'write it'
