@@ -47,46 +47,60 @@ class LoggerWindow:
 
         self.line_index = 1
 
-        self.canvas = Canvas(self.frame, width=300, borderwidth=0, background='#ffffff')
-        self.inner_frame = Frame(self.canvas, background='#ffffff')
+        self.top_canvas = Canvas(self.frame, borderwidth=0, height=21, background='#ffffff')
+        self.top_frame = Frame(self.top_canvas, background='#ffffff')
+        self.bottom_canvas = Canvas(self.frame, borderwidth=0, background='#ffffff')
+        self.bottom_frame = Frame(self.bottom_canvas, background='#ffffff')
         self.make_headings()
-        self.vsb = Scrollbar(self.frame, orient='vertical', command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=self.vsb.set)
-        self.hsb = Scrollbar(self.frame, orient='horizontal', command=self.canvas.xview)
-        self.canvas.configure(xscrollcommand=self.hsb.set)
-        self.vsb.grid(row=1, column=1, sticky=NS)
-        self.hsb.grid(row=2, column=0, sticky=EW)
-        self.canvas.grid(row=1, column=0)
-        # self.vsb.pack(side='right', fill='y')
-        # self.hsb.pack(side='bottom', fill='x')
-        # self.bottom_canvas.pack(side='left', fill='both', expand=True)
-        self.canvas.create_window((4, 4), window=self.inner_frame, anchor='nw',
-                                  tags='inner_frame')
+        self.vsb = Scrollbar(self.frame, orient='vertical', command=self.bottom_canvas.yview)
+        self.bottom_canvas.configure(yscrollcommand=self.vsb.set)
+        self.hsb = Scrollbar(self.frame, orient='horizontal', command=self.special_view)
+        # self.top_canvas.configure(xscrollcommand=self.hsb.set)
+        self.bottom_canvas.configure(xscrollcommand=self.hsb.set)
+        # ###self.vsb.grid(row=1, column=1, sticky=NS)
+        # ###self.hsb.grid(row=2, column=0, sticky=EW)
+        # ###self.top_canvas.grid(row=0, column=0)
+        # ###self.bottom_canvas.grid(row=1, column=0)
+        self.vsb.pack(side='right', fill='y')
+        self.hsb.pack(side='bottom', fill='x')
+        self.top_canvas.pack(side='top', fill='both', expand=True)
+        self.bottom_canvas.pack(side='left', fill='both', expand=True)
+        self.top_canvas.create_window((4, 4), window=self.top_frame, anchor='nw',
+                                      tags='self.top_frame')
+        self.bottom_canvas.create_window((4, 29), window=self.bottom_frame, anchor='nw',
+                                         tags='self.bottom_frame')
         self.button4 = Button(root, text='Log', command=self.log_it)
         self.button4.grid(row=0, column=3, padx=5)
 
+    def special_view(self, *args):
+        apply(self.top_canvas.xview, args)
+        apply(self.bottom_canvas.xview, args)
 
     def make_headings(self):
         column = 0
         for keys in logger_dict.iterkeys():
-            column_head = Label(self.inner_frame, text=keys)
+            column_head = Label(self.top_frame, text=keys)
             column_head.grid(row=0, column=column)
+            line_head = Label(self.bottom_frame, text=keys)
+            line_head.grid(row=0, column=column)
             column += 1
 
     def log_it(self):
         column = 0
         for keys in logger_dict.iterkeys():
-            print column
-            # current_value = logger_dict[keys][1].get()
-            line_label = Label(self.inner_frame, text=logger_dict[keys][1].get())
+            line_label = Label(self.bottom_frame, text=logger_dict[keys][1].get())
             line_label.grid(row=self.line_index, column=column)
+            line_label.update_idletasks()
+            new_width = line_label.winfo_width()
+            self.top_frame.grid_columnconfigure(index=column, minsize=new_width)
             column += 1
         self.line_index += 1
-        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
-        print self.canvas.bbox('all')
-        print self.canvas.cget('scrollregion')
-        print self.inner_frame.bbox(ALL)
-        self.canvas.yview_moveto(1.0)
+        self.bottom_canvas.configure(scrollregion=self.bottom_canvas.bbox('self.bottom_frame'))
+        self.top_canvas.configure(scrollregion=self.top_canvas.bbox('self.top_frame'))
+        # ###print self.bottom_canvas.bbox('self.bottom_frame')
+        # ###print self.bottom_canvas.bbox('all')
+        # ###print self.bottom_canvas.cget('scrollregion')
+        self.bottom_canvas.yview_moveto(1.0)
 
 
 def create_entry():
