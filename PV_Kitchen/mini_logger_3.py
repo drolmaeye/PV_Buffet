@@ -13,11 +13,11 @@ class MasterDropdown:
         self.pv_choice.set('Select a PV')
 
         self.menubutton = Menubutton(self.frame, textvariable=self.pv_choice, indicatoron=True)
-        self.main_menu = Menu(self.menubutton)
+        self.main_menu = Menu(self.menubutton, tearoff=False)
         self.menubutton.configure(menu=self.main_menu)
 
         for key in dropdown_dict.keys():
-            menu = Menu(self.main_menu)
+            menu = Menu(self.main_menu, tearoff=False)
             self.main_menu.add_cascade(label=key, menu=menu)
             for value in dropdown_dict[key]:
                 menu.add_radiobutton(label=value, variable=self.pv_choice, value=value)

@@ -109,23 +109,23 @@ line_index = 0
 
 # Dropdown collected in list first to accommodate ordered dictionary
 dropdown_list = [('Timestamp', ['Timestamp']),
-               ('Sample stages', ['XPS Cen X', 'XPS Cen Y', 'XPS Sam Z', 'XPS Omega']),
-               ('Counts', ['Ring current', 'IDA-IC', 'IDB-IC', 'Beamstop'])
-               ]
+                 ('Sample stages', ['XPS Cen X', 'XPS Cen Y', 'XPS Sam Z', 'XPS Omega']),
+                 ('Counts', ['Ring current', 'IDA-IC', 'IDB-IC', 'Beamstop'])
+                 ]
 
 # dropdown menus put into proper, ordered list
 dropdown_dict = collections.OrderedDict(dropdown_list)
 
 # master dictionry shouold probably be read from file, but hard-coded for development convenience
 master_dict = {'Timestamp': 'S:IOC:timeOfDayForm1SI',
-              'XPS Cen X': 'XPSGP:m1.RBV',
-              'XPS Cen Y': 'XPSGP:m2.RBV',
-              'XPS Sam Z': 'XPSGP:m3.RBV',
-              'XPS Omega': 'XPSGP:m4.RBV',
-              'Ring current': 'S:SRcurrentAI.VAL',
-              'IDA-IC': '16IDB:scaler1_cts2.A',
-              'IDB-IC': '16IDB:scaler1_cts1.C',
-              'Beamstop': '16IDB:scaler1_cts2.B'}
+               'XPS Cen X': 'XPSGP:m1.RBV',
+               'XPS Cen Y': 'XPSGP:m2.RBV',
+               'XPS Sam Z': 'XPSGP:m3.RBV',
+               'XPS Omega': 'XPSGP:m4.RBV',
+               'Ring current': 'S:SRcurrentAI.VAL',
+               'IDA-IC': '16IDB:scaler1_cts2.A',
+               'IDB-IC': '16IDB:scaler1_cts1.C',
+               'Beamstop': '16IDB:scaler1_cts2.B'}
 
 # logger list and dictionary will contain only the logged PVs and associated objects
 logger_list = []
