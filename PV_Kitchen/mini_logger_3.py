@@ -3,16 +3,63 @@ import collections
 from epics import *
 
 
+class CoreData:
+    def __init__(self):
+
+        self.number_of_pvs = 0
+        self.line_index = 0
+        self.logger_list = []
+        self.logger_dict = {}
+
+
+class LoggerConfig:
+    def __init__(self, master):
+        self.config_window = Toplevel(master)
+        self.config_window.title('Data logger initialization and reconfiguration')
+
+        # make and place primary frames
+        self.frame_labels = Frame(self.config_window)
+        self.frame_buttons = Frame(self.config_window)
+        self.frame_pvs = Frame(self.config_window)
+
+        self.frame_labels.pack(side='left', fill='both', expand=True)
+        self.frame_buttons.pack(side='top', fill='both', expand=True)
+        self.frame_pvs.pack(side='top', fill='both', expand=True)
+
+        # create and place frame label widgets
+        # create and place frame button widgets
+        add_pv_button = Button(self.frame_buttons, text='Add New PV', command=self.create_entry)
+        remove_pv_button = Button(self.frame_buttons, text='Remove PV', command=self.remove_entry)
+        launch_logger_button = Button(self.frame_buttons, text='Launch logger window', command=self.create_pvs)
+
+        add_pv_button.grid(row=0, column=0, padx=5, pady=5)
+        remove_pv_button.grid(row=1, column=0, padx=5, pady=5)
+        launch_logger_button.grid(row=2, column=0, padx=5, pady=5)
+
+    def create_entry(self):
+        MasterDropdown(self.frame_pvs)
+        core.number_of_pvs += 1
+
+    def remove_entry(self):
+        print len(core.logger_list)
+        core.logger_list.pop()
+        print len(core.logger_list)
+
+    def create_pvs(self):
+        core.logger_dict = collections.OrderedDict(core.logger_list)
+        LoggerWindow(root)
+        root.deiconify()
+
+
 class MasterDropdown:
 
     def __init__(self, master):
-        self.frame = Frame(master)
-        self.frame.grid(row=1, column=number_of_pvs)
 
         self.pv_choice = StringVar()
         self.pv_choice.set('Select a PV')
+        self.pv_index = core.number_of_pvs
 
-        self.menubutton = Menubutton(self.frame, textvariable=self.pv_choice, indicatoron=True)
+        self.menubutton = Menubutton(master, textvariable=self.pv_choice, indicatoron=True)
         self.main_menu = Menu(self.menubutton, tearoff=False)
         self.menubutton.configure(menu=self.main_menu)
 
@@ -22,8 +69,9 @@ class MasterDropdown:
             for value in dropdown_dict[key]:
                 menu.add_radiobutton(label=value, variable=self.pv_choice, value=value)
 
-        self.menubutton.pack()
+        self.menubutton.grid(row=1, column=core.number_of_pvs)
         self.pv_choice.trace('w', self.pv_append)
+        core.logger_list.append(self.pv_index)
 
     def pv_append(self, *kargs):
         self.menubutton.configure(indicatoron=False)#, state=DISABLED)
@@ -34,10 +82,9 @@ class MasterDropdown:
         pv_object.add_callback(lambda **kwargs: pv_value.set(pv_object.value))
         pv_object.run_callbacks()
         entry = (pv_name, [pv_label, pv_value, pv_object, master_dict[pv_name]])
-        # print entry
-        logger_list.append(entry)
-        print logger_list
-        # print number_of_pvs
+        core.logger_list[self.pv_index] = entry
+        print core.logger_list
+
 
 
 class LoggerWindow:
@@ -81,7 +128,7 @@ class LoggerWindow:
 
     def make_headings(self):
         column = 0
-        for keys in logger_dict.iterkeys():
+        for keys in core.logger_dict.iterkeys():
             column_head = Label(self.top_frame, text=keys, bg='#ffffff')
             column_head.grid(row=0, column=column)
             line_head = Label(self.bottom_frame, text=keys)
@@ -94,8 +141,8 @@ class LoggerWindow:
             line_color = 'gray64'
         else:
             line_color = '#ffffff'
-        for keys in logger_dict.iterkeys():
-            line_label = Label(self.bottom_frame, text=logger_dict[keys][1].get(), bg=line_color, padx=10)
+        for keys in core.logger_dict.iterkeys():
+            line_label = Label(self.bottom_frame, text=core.logger_dict[keys][1].get(), bg=line_color, padx=10)
             line_label.grid(row=self.line_index, column=column, sticky=W+E)
             line_label.update_idletasks()
             new_width = line_label.winfo_width()
@@ -104,44 +151,37 @@ class LoggerWindow:
         self.line_index += 1
         self.bottom_canvas.configure(scrollregion=self.bottom_canvas.bbox('self.bottom_frame'))
         self.top_canvas.configure(scrollregion=self.top_canvas.bbox('self.top_frame'))
-        # ###print self.bottom_canvas.bbox('self.bottom_frame')
-        # ###print self.bottom_canvas.bbox('all')
-        # ###print self.bottom_canvas.cget('scrollregion')
         self.bottom_canvas.yview_moveto(1.0)
 
     def on_resize(self, event):
         frame_width = event.width
         frame_height = event.height
-        print self.bottom_canvas.winfo_width()
-        print self.frame.winfo_width()
-        print frame_height
         self.bottom_canvas.config(width=frame_width, height=frame_height)
 
 
-def create_entry():
-    MasterDropdown(pv_frame)
-    global number_of_pvs
-    number_of_pvs += 1
+def hide_config():
+    config.config_window.withdraw()
 
 
-def create_pvs():
-    global logger_dict
-    logger_dict = collections.OrderedDict(logger_list)
-    print logger_dict
-    LoggerWindow(root)
+def close_quit():
+    # add dialog box back in and indent following code after testing period
+    # ##if askyesno('Quit PV Buffet', 'Do you want to quit?'):
+    root.destroy()
+    root.quit()
 
 
 root = Tk()
 root.configure(bg='blue')
+root.withdraw()
 
-number_of_pvs = 0
-line_index = 0
+
+
 
 # Dropdown collected in list first to accommodate ordered dictionary
 dropdown_list = [('Timestamp', ['Timestamp']),
-               ('Sample stages', ['XPS Cen X', 'XPS Cen Y', 'XPS Sam Z', 'XPS Omega']),
-               ('Counts', ['Ring current', 'IDA-IC', 'IDB-IC', 'Beamstop'])
-               ]
+                 ('Sample stages', ['XPS Cen X', 'XPS Cen Y', 'XPS Sam Z', 'XPS Omega']),
+                 ('Counts', ['Ring current', 'IDA-IC', 'IDB-IC', 'Beamstop']),
+                 ]
 
 # dropdown menus put into proper, ordered list
 dropdown_dict = collections.OrderedDict(dropdown_list)
@@ -158,15 +198,12 @@ master_dict = {'Timestamp': 'S:IOC:timeOfDayForm1SI',
               'Beamstop': '16IDB:scaler1_cts2.B'}
 
 # logger list and dictionary will contain only the logged PVs and associated objects
-logger_list = []
-logger_dict = {}
-
+core = CoreData()
+config = LoggerConfig(root)
+config.config_window.protocol('WM_DELETE_WINDOW', hide_config)
+root.protocol('WM_DELETE_WINDOW', close_quit)
 button_frame = Frame(root, bg='red')
 button_frame.pack(fill='x')
 pv_frame = Frame(root, bg='green')
 pv_frame.pack(fill='x')
-button = Button(button_frame, text='New PV', command=create_entry)
-button.grid(row=0, column=0, padx=5)
-button2 = Button(button_frame, text='Create_PVs', command=create_pvs)
-button2.grid(row=0, column=1, padx=5)
 root.mainloop()
